@@ -2,7 +2,9 @@
 
 Одностраничный визуализатор звука в духе Winamp: полноэкранная анимация на Canvas, захват системного звука или микрофона через Web Audio API. Подходит для стримов, записи экрана и фона под музыку из Spotify, браузера или любого приложения.
 
-Файл приложения: [`visual.html`](visual.html)
+Файл приложения: [`visual.html`](visual.html) (или [`index.html`](index.html) → редирект).
+
+**Демо (после публикации на GitHub Pages):** https://logmaks.github.io/Neon/
 
 ## Возможности
 
@@ -30,7 +32,22 @@ cd Neon
 python3 -m http.server 8080
 ```
 
-Затем откройте: http://localhost:8080/visual.html
+Затем откройте: http://localhost:8080/visual.html (или http://localhost:8080/)
+
+## Публикация на GitHub
+
+1. Создайте **публичный** репозиторий `Neon` на GitHub (без README, если пушите локальную копию).
+2. В каталоге проекта:
+
+```bash
+git remote add origin git@github.com:ВАШ_ЛОГИН/Neon.git
+git push -u origin main
+```
+
+3. В репозитории: **Settings → Pages → Build and deployment → GitHub Actions** (workflow `Deploy GitHub Pages` подхватится после push в `main`).
+4. Через 1–2 минуты приложение будет на `https://ВАШ_ЛОГИН.github.io/Neon/`.
+
+С `gh` CLI (если установлен): `gh repo create Neon --public --source=. --remote=origin --push`
 
 ## Захват Spotify и системного звука
 
@@ -79,8 +96,10 @@ Spotify **не отдаёт** сырой аудиопоток через пуб�
 
 ```
 Neon/
-├── README.md      # этот файл
-├── LICENSE        # MIT
+├── .github/workflows/pages.yml
+├── README.md
+├── LICENSE
+├── index.html     # редирект на visual.html (удобно для GitHub Pages)
 └── visual.html    # приложение (разметка, стили, скрипт)
 ```
 
