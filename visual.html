@@ -430,7 +430,7 @@
     }
 
     function getCustomTitle() {
-      return trackTitleInput.value.trim();
+      return trackTitleInput ? trackTitleInput.value.trim() : '';
     }
 
     function setSourceOverlay(active, label, kind, head) {
@@ -487,6 +487,7 @@
     }
 
     function loadSavedTrackTitle() {
+      if (!trackTitleInput) return;
       try {
         const saved = localStorage.getItem(TRACK_TITLE_STORAGE_KEY);
         if (saved) trackTitleInput.value = saved;
@@ -494,6 +495,7 @@
     }
 
     function saveTrackTitle() {
+      if (!trackTitleInput) return;
       try {
         const value = trackTitleInput.value;
         if (value.trim()) {
@@ -609,10 +611,12 @@
 
     sourceSelect.addEventListener('change', refreshSourceOverlay);
 
-    trackTitleInput.addEventListener('input', () => {
-      saveTrackTitle();
-      refreshSourceOverlay();
-    });
+    if (trackTitleInput) {
+      trackTitleInput.addEventListener('input', () => {
+        saveTrackTitle();
+        refreshSourceOverlay();
+      });
+    }
 
     loadSavedTrackTitle();
     refreshSourceOverlay();
