@@ -233,6 +233,39 @@
       opacity: 0.72;
     }
 
+    .source-overlay.is-hidden {
+      display: none;
+    }
+
+    .overlay-toggle {
+      position: absolute;
+      right: 20px;
+      bottom: 20px;
+      width: 34px;
+      height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      border: 1px solid var(--panel-border);
+      border-radius: 10px;
+      background: rgba(5, 7, 10, 0.55);
+      backdrop-filter: blur(12px);
+      color: var(--text);
+      font: inherit;
+      font-size: 16px;
+      line-height: 1;
+      cursor: pointer;
+      z-index: 9;
+      transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+    }
+
+    .overlay-toggle:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255, 255, 255, 0.26);
+      background: rgba(255, 255, 255, 0.11);
+    }
+
     .source-overlay .source-title {
       margin: 0 0 4px;
       font-size: 11px;
@@ -279,6 +312,42 @@
       display: none;
     }
 
+    .app.ui-hidden .hud,
+    .app.ui-hidden .source-overlay,
+    .app.ui-hidden .overlay-toggle {
+      display: none;
+    }
+
+    .ui-hint {
+      position: absolute;
+      left: 50%;
+      bottom: 20px;
+      transform: translateX(-50%);
+      padding: 8px 14px;
+      border: 1px solid var(--panel-border);
+      border-radius: 10px;
+      background: rgba(5, 7, 10, 0.55);
+      backdrop-filter: blur(12px);
+      color: var(--muted);
+      font-size: 12px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 260ms ease;
+      z-index: 11;
+    }
+
+    .app.ui-hidden .ui-hint {
+      opacity: 1;
+      animation: ui-hint-fade 2.6s ease forwards;
+    }
+
+    @keyframes ui-hint-fade {
+      0% { opacity: 0; }
+      18% { opacity: 1; }
+      72% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
     @media (max-width: 720px) {
       .hud {
         top: 12px;
@@ -303,8 +372,10 @@
   </style>
 </head>
 <body>
-  <div class="app">
+  <div class="app" id="app">
     <canvas id="visualizer"></canvas>
+
+    <div class="ui-hint">Интерфейс скрыт · нажмите «H», чтобы вернуть</div>
 
     <div id="sourceOverlay" class="source-overlay is-idle" aria-live="polite">
       <p id="sourceTitleHead" class="source-title">Сейчас играет</p>
@@ -312,9 +383,11 @@
       <p id="sourceKind" class="source-kind">Захватите звук, чтобы увидеть источник</p>
     </div>
 
+    <button id="toggleOverlayBtn" class="overlay-toggle" type="button" aria-expanded="true" title="Скрыть источник">−</button>
+
     <section class="hud" id="hud">
       <div class="hud-head">
-        <h1>Winamp‑style Visualizer</h1>
+        <h1>VisioWave</h1>
         <button id="toggleHudBtn" class="hud-toggle" type="button" aria-expanded="true" title="Скрыть панель">−</button>
       </div>
       <p>
@@ -382,6 +455,10 @@
           </label>
         </div>
 
+        <div class="row full">
+          <button id="hideUiBtn" type="button">Скрыть весь интерфейс (H)</button>
+        </div>
+
         <div class="status">
           <span class="pill"><span id="statusDot" class="dot"></span><span id="statusText">нет аудиопотока</span></span>
           <span id="fpsText">0 FPS</span>
@@ -400,8 +477,10 @@
     const canvas = document.getElementById('visualizer');
     const ctx = canvas.getContext('2d');
 
+    const app = document.getElementById('app');
     const hud = document.getElementById('hud');
     const toggleHudBtn = document.getElementById('toggleHudBtn');
+    const hideUiBtn = document.getElementById('hideUiBtn');
     const startBtn = document.getElementById('startBtn');
     const stopBtn = document.getElementById('stopBtn');
     const sourceSelect = document.getElementById('sourceSelect');
@@ -413,6 +492,7 @@
     const statusText = document.getElementById('statusText');
     const fpsText = document.getElementById('fpsText');
     const sourceOverlay = document.getElementById('sourceOverlay');
+    const toggleOverlayBtn = document.getElementById('toggleOverlayBtn');
     const sourceTitleHead = document.getElementById('sourceTitleHead');
     const sourceLabel = document.getElementById('sourceLabel');
     const sourceKind = document.getElementById('sourceKind');
@@ -667,6 +747,26 @@
       toggleHudBtn.title = collapsed ? 'Показать панель' : 'Скрыть панель';
     });
 
+    toggleOverlayBtn.addEventListener('click', () => {
+      const hidden = sourceOverlay.classList.toggle('is-hidden');
+      toggleOverlayBtn.textContent = hidden ? '+' : '−';
+      toggleOverlayBtn.setAttribute('aria-expanded', String(!hidden));
+      toggleOverlayBtn.title = hidden ? 'Показать источник' : 'Скрыть источник';
+    });
+
+    function setUiHidden(hidden) {
+      app.classList.toggle('ui-hidden', hidden);
+    }
+
+    hideUiBtn.addEventListener('click', () => setUiHidden(true));
+
+    window.addEventListener('keydown', (event) => {
+      if (event.code !== 'KeyH' || event.metaKey || event.ctrlKey || event.altKey) return;
+      const tag = event.target && event.target.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      setUiHidden(!app.classList.contains('ui-hidden'));
+    });
+
     startBtn.addEventListener('click', startCapture);
     stopBtn.addEventListener('click', stopCapture);
 
@@ -686,7 +786,9 @@
       let bass = 0, mid = 0, treble = 0, total = 0;
 
       for (let i = 0; i < len; i++) {
-        const v = Math.min(255, freqData[i] * gain);
+        const tilt = 1 + Math.pow(i / len, 0.6) * 2.6;
+        const v = Math.min(255, freqData[i] * gain * tilt);
+        freqData[i] = v;
         total += v;
         if (i < bassEnd) bass += v;
         else if (i < midEnd) mid += v;
