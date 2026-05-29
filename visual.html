@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VisioWAve</title>
+  <title>VisioWave</title>
   <style>
     :root {
       --bg: #05070a;
@@ -59,11 +59,45 @@
       z-index: 10;
     }
 
-    .hud h1 {
+    .hud-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
       margin: 0 0 6px;
+    }
+
+    .hud h1 {
+      margin: 0;
       font-size: 18px;
       font-weight: 700;
       letter-spacing: -0.02em;
+    }
+
+    .hud-toggle {
+      width: 34px;
+      height: 34px;
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      border-radius: 10px;
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .hud.is-collapsed p,
+    .hud.is-collapsed .controls {
+      display: none;
+    }
+
+    .hud.is-collapsed {
+      width: auto;
+    }
+
+    .hud.is-collapsed .hud-head {
+      margin: 0;
     }
 
     .hud p {
@@ -278,8 +312,11 @@
       <p id="sourceKind" class="source-kind">Захватите звук, чтобы увидеть источник</p>
     </div>
 
-    <section class="hud">
-      <h1>Winamp‑style Visualizer</h1>
+    <section class="hud" id="hud">
+      <div class="hud-head">
+        <h1>Winamp‑style Visualizer</h1>
+        <button id="toggleHudBtn" class="hud-toggle" type="button" aria-expanded="true" title="Скрыть панель">−</button>
+      </div>
       <p>
         Запусти источник звука, нажми «Захватить звук» и выбери системный звук/вкладку или микрофон.
       </p>
@@ -363,6 +400,8 @@
     const canvas = document.getElementById('visualizer');
     const ctx = canvas.getContext('2d');
 
+    const hud = document.getElementById('hud');
+    const toggleHudBtn = document.getElementById('toggleHudBtn');
     const startBtn = document.getElementById('startBtn');
     const stopBtn = document.getElementById('stopBtn');
     const sourceSelect = document.getElementById('sourceSelect');
@@ -620,6 +659,13 @@
 
     loadSavedTrackTitle();
     refreshSourceOverlay();
+
+    toggleHudBtn.addEventListener('click', () => {
+      const collapsed = hud.classList.toggle('is-collapsed');
+      toggleHudBtn.textContent = collapsed ? '+' : '−';
+      toggleHudBtn.setAttribute('aria-expanded', String(!collapsed));
+      toggleHudBtn.title = collapsed ? 'Показать панель' : 'Скрыть панель';
+    });
 
     startBtn.addEventListener('click', startCapture);
     stopBtn.addEventListener('click', stopCapture);
