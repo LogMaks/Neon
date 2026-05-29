@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Spotify / System Audio Visualizer MVP</title>
+  <title>VisioWAve</title>
   <style>
     :root {
       --bg: #05070a;
@@ -279,7 +279,7 @@
     </div>
 
     <section class="hud">
-      <h1>Winamp‑style Visualizer MVP</h1>
+      <h1>Winamp‑style Visualizer</h1>
       <p>
         Запусти источник звука, нажми «Захватить звук» и выбери системный звук/вкладку или микрофон.
       </p>
@@ -289,7 +289,7 @@
           <button id="startBtn" class="primary">Захватить звук</button>
           <button id="stopBtn" class="danger">Остановить</button>
         </div>
-
+        <!-- Need to redesign this part for better UX, maybe add support for fetching track title from Spotify Web API in future versions
         <div class="row full">
           <label>
             Название на оверлее
@@ -303,7 +303,7 @@
             />
           </label>
         </div>
-
+        -->
         <div class="row">
           <label>
             Источник
@@ -319,7 +319,9 @@
               <option value="bars">Spectrum Bars</option>
               <option value="circle">Radial Spectrum</option>
               <option value="wave">Waveform Tunnel</option>
+              <!-- Требует оптимизации для стабильной работы на 60 FPS, особенно на мобильных устройствах. Планируется добавить в будущих версиях.
               <option value="particles">Particle Field</option>
+              -->
             </select>
           </label>
         </div>
